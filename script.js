@@ -282,7 +282,7 @@ function resetGame(){
     bgm.pause();
     bgm.currentTime=0;
     drawBoard();
-    showLevelScreen();
+    showModeScreen();
 }
 
 function showConfirm(){
