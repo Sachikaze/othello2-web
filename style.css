@@ -15,6 +15,9 @@ body{
     0%{background-color:#8ed8ed;}
     100%{background-color:#fface3;}
 }
+:root {
+  --cell-size: 50px;
+}
 #info{
     font-size:20px;
     margin:16px auto;
@@ -27,15 +30,15 @@ body{
 }
 #board{
     display:grid;
-    grid-template-columns:repeat(8,50px);
-    width:400px;
+    grid-template-columns:repeat(8,var(--cell-size));
+    width:calc(var(--cell-size)*8);
     margin:20px auto;
     border:8px solid #a97ee0;
     box-shadow:0 0 0 4px #ff7ec8,0 0 18px 6px rgba(169,126,224,0.8);
 }
 .cell{
-    width:50px;
-    height:50px;
+    width:var(--cell-size);
+    height:var(--cell-size);
     background-color:#cfeff7;
     border:1px solid #a9d6e5;
     box-sizing:border-box;
@@ -252,4 +255,26 @@ body{
 #room-code-input:disabled {
   background-color: #ddd8e0;
   color: #a09aa8;
+}
+@media (max-width: 480px) {
+    .stone {
+    transform: scale(0.75);
+  }
+  :root {
+    --cell-size: 38px;
+  }
+  #board {
+    border-width: 4px;
+    margin: 10px auto;
+  }
+  #info {
+    width: 300px;
+    font-size: 16px;
+  }
+  #level-info, #thinking {
+    font-size: 14px;
+  }
+  .popup-window {
+    width: 260px;
+  }
 }
