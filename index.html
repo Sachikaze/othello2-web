@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="UTF-8">
+        <title>オセロ</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="style.css">
+    </head>
+    <body>
+        <div id="dark-veil"></div>
+        <div id="level-info"></div>
+        <div id="info"></div>
+        <div id="thinking" class="hidden">かんがえちゅう<span id="dots"></span></div>
+        <button id="undo">とりけし</button>
+        <button id="reset">リセット</button>
+        <div id="board"></div>
+        <div id="popup" class="hidden">
+            <div class="popup-window">
+                <div class="popup-bar">
+                    <span id="popup-title">おしらせ</span>
+                    <span class="popup-x">_ □ ×</span>
+                </div>
+                <div class="popup-body">
+                    <p id="popup-message"></p>
+                    <button id="popup-ok">OK</button>
+                </div>
+            </div>
+        </div>
+        <div id="level-screen">
+            <div class="popup-window">
+                <div class="popup-bar">
+                    <span>ゲームをはじめる</span>
+                </div>
+                <div class="popup-body">
+                    <p>むずかしさをえらんでね</p>
+                    <button id="level-lose" class="pair-button">負けてあげるよ</button>
+                    <button id="level-easy" class="pair-button">やさしい</button>
+                    <button id="level-normal" class="pair-button">ふつう</button>
+                    <button id="level-hard" class="pair-button">むずかしい</button>
+                    <button id="level-win" class="pair-button">勝つよ</button>
+                </div>
+            </div>
+        </div>
+        <div id="start-screen" class="hidden">
+            <div class="popup-window">
+                <div class="popup-bar">
+                    <span>ゲームをはじめる</span>
+                </div>
+                <div class="popup-body">
+                    <p>あなたのいろをえらんでね</p>
+                    <button id="choose-black" class="pair-button">みずいろ(まえ)</button>
+                    <button id="choose-white" class="pair-button">ピンク(あと)</button>
+                </div>
+            </div>
+        </div>
+        <div id="confirm" class="hidden">
+            <div class="popup-window">
+                <div class="popup-bar">
+                    <span>かくにん</span>
+                </div>
+                <div class="popup-body">
+                    <p>ほんとうにリセットしますか？</p>
+                    <button id="confirm-yes" class="pair-button">はい</button>
+                    <button id="confirm-no" class="pair-button">いいえ</button>
+                </div>
+            </div>
+        </div>
+        <script src="script.js"></script>
+    </body>
+</html>
+    
