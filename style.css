@@ -206,6 +206,50 @@ body{
   position: relative;
   z-index: 2;
 }
-#popup,#confirm,#level-screen,#start-screen{
-    z-index:10;
+#level-screen,#start-screen,#mode-screen,#room-screen{
+    z-index:100;
+}
+#popup,#confirm{
+    z-index:200;
+}
+#mode-screen, #room-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(106,74,140,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+#mode-screen.hidden, #room-screen.hidden {
+  display: none;
+}
+#room-code-input {
+  font-family: "DotGothic16", sans-serif;
+  font-size: 18px;
+  color: #6a4a8c;
+  background-color: white;
+  border: 3px solid #6a4a8c;
+  padding: 6px;
+  margin: 8px;
+  width: 180px;
+  box-sizing: border-box;
+  text-align: center;
+}
+#room-code-display {
+  font-size: 22px;
+  min-height: 30px;
+}
+.pair-button:disabled {
+  color: #a09aa8;
+  background-color: #ddd8e0;
+  border-color: #a09aa8;
+  box-shadow: 3px 3px 0 #c8c2cc;
+  cursor: default;
+}
+#room-code-input:disabled {
+  background-color: #ddd8e0;
+  color: #a09aa8;
 }

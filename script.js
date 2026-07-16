@@ -13,6 +13,10 @@ let typedKeys="";
 let moveCount=0;
 let secretUsed=false;
 let dotTimer=null;
+let gameMode="single";
+let roomCode="";
+let isHost=false;
+let leavingSelf=false;
 const bgm=new Audio("sounds/BGM.wav");
 const seGameStart=new Audio("sounds/gameStart.wav");
 const sePlaceStone=new Audio("sounds/placeStone.wav");
@@ -123,17 +127,18 @@ function updateInfo(){
     const blackCount=countStones("黒");
     const whiteCount=countStones("白");
     let turnText;
+    const opponentLabel=gameMode==="multi"?"あいて":"わたし";
     if(currentPlayer===humanColor){
         turnText="あなたの番です";
     }else{
-        turnText="わたしの番です";
+        turnText=opponentLabel+"の番です";
     }
     const humanCount=humanColor==="黒"?blackCount:whiteCount;
     const cpuCount=humanColor==="黒"?whiteCount:blackCount;
     const humanClass=humanColor==="黒"?"label-black":"label-white";
     const cpuClass=humanColor==="黒"?"label-white":"label-black";
     const infoElement=document.getElementById("info");
-    infoElement.innerHTML=turnText+"<br><span class='"+humanClass+"'>あなた</span>："+humanCount+"個 <span class='"+cpuClass+"'>わたし</span>："+cpuCount+"個";
+    infoElement.innerHTML=turnText+"<br><span class='"+humanClass+"'>あなた</span>："+humanCount+"個 <span class='"+cpuClass+"'>"+opponentLabel+"</span>："+cpuCount+"個";
 }
 
 function hasValidMove(color){
@@ -247,16 +252,29 @@ function afterMove(){
         }else{
             drawBoard();
             showResultPopup(judgeWinner());
+            if(gameMode==="multi"){
+                pushToFirebase();
+            }
             return;
         }
     }
     drawBoard();
+    if(gameMode==="multi"){
+        pushToFirebase();
+        return;
+    }
     if(currentPlayer!==humanColor){
         setTimeout(cpuMove,500);
     }
 }
 
 function resetGame(){
+    if(gameMode==="multi"){
+        leavingSelf=true;
+        fbRemove(fbRef(fbDb,"rooms/"+roomCode));
+        leaveRoom();
+        return;
+    }
     cpuLevel="";
     initBoard();
     savedBoard=null;
@@ -269,6 +287,12 @@ function resetGame(){
 
 function showConfirm(){
     const confirmBox=document.getElementById("confirm");
+    const msg=confirmBox.querySelector(".popup-body p");
+    if(gameMode==="multi"){
+        msg.textContent="へやからでますか？";
+    }else{
+        msg.textContent="リセットしますか？";
+    }
     confirmBox.className="";
 }
 
@@ -294,6 +318,10 @@ function saveState(){
 }
 
 function undoMove(){
+    if(gameMode==="multi"){
+        showPopup("ふたりのときは戻せないよ");
+        return;
+    }
     if(savedBoard===null){
         showPopup("戻せません");
         return;
@@ -602,6 +630,9 @@ function evaluateStones(b,color){
 }
 
 function unlockSecret(){
+    if(gameMode==="multi"){
+        return;
+    }
     if(secretUsed){
         return;
     }
@@ -672,17 +703,136 @@ function hideThinking(){
 }
 
 function showLevelScreen(){
+    document.getElementById("mode-screen").className="hidden";
     document.getElementById("level-screen").className="";
-    document.getElementById("start-screen").className="hidden";  
+    document.getElementById("start-screen").className="hidden";
+    document.getElementById("room-screen").className="hidden";
 }
 
 function showColorScreen(){
+    document.getElementById("mode-screen").className="hidden";
     document.getElementById("level-screen").className="hidden";
     document.getElementById("start-screen").className="";
+    document.getElementById("room-screen").className="hidden";
+}
+function showModeScreen(){
+    document.getElementById("mode-screen").className="";
+    document.getElementById("level-screen").className="hidden";
+    document.getElementById("start-screen").className="hidden";
+    document.getElementById("room-screen").className="hidden";
+}
+
+function showRoomScreen(){
+    document.getElementById("mode-screen").className="hidden";
+    document.getElementById("room-screen").className="";
+}
+
+function makeRoomCode(){
+    let code="";
+    for(let i=0;i<6;i++){
+        code=code+Math.floor(Math.random()*10);
+    }
+    return code;
+}
+
+function createRoom(){
+    roomCode=makeRoomCode();
+    isHost=true;
+    humanColor="黒";
+    gameMode="multi";
+
+    initBoard();
+
+    fbSet(fbRef(fbDb,"rooms/"+roomCode),{
+        board:board,
+        currentPlayer:"黒",
+        guestJoined:false
+    });
+    fbOnDisconnect(fbRef(fbDb,"rooms/"+roomCode)).remove();
+    document.getElementById("room-code-display").innerHTML="ばんごう："+roomCode+"<br>たいきちゅう";
+    document.getElementById("room-create").disabled=true;
+    document.getElementById("room-join").disabled=true;
+    document.getElementById("room-code-display").textContent="ばんごう："+roomCode;
+    watchRoom();
+}
+
+function joinRoom(){
+    const code=document.getElementById("room-code-input").value;
+    if(code.length!==6){
+        showPopup("6けたのばんごうをいれてね");
+        return;
+    }
+    fbGet(fbRef(fbDb,"rooms/"+code)).then(function(snapshot){
+        if(!snapshot.exists()){
+            showPopup("そのへやはないよ");
+            return;
+        }
+        const data=snapshot.val();
+        if(data.guestJoined===true){
+            showPopup("そのへやはいっぱいだよ");
+            return;
+        }
+        roomCode=code;
+        isHost=false;
+        humanColor="白";
+        gameMode="multi";
+
+        fbSet(fbRef(fbDb,"rooms/"+roomCode+"/guestJoined"),true);
+        fbOnDisconnect(fbRef(fbDb,"rooms/"+roomCode)).remove();
+        watchRoom();
+    });
+}
+
+function watchRoom(){
+    fbOnValue(fbRef(fbDb,"rooms/"+roomCode),function(snapshot){
+        const data=snapshot.val();
+        if(data===null){
+            if(gameMode==="multi"&&!leavingSelf){
+                leaveRoom();
+                showPopup("あいてがいなくなりました");
+            }
+            leavingSelf=false;
+            return;
+        }
+        if(data.guestJoined===true&&document.getElementById("room-screen").className===""){
+            document.getElementById("room-screen").className="hidden";
+            playSound(seGameStart);
+        }
+        if(data.board){
+            board=data.board;
+            currentPlayer=data.currentPlayer;
+            drawBoard();
+        }
+    });
+}
+
+function pushToFirebase(){
+    fbSet(fbRef(fbDb,"rooms/"+roomCode),{
+        board:board,currentPlayer:currentPlayer,guestJoined:true
+    });
+}
+
+function leaveRoom(){
+    gameMode="single";
+    roomCode="";
+    isHost=false;
+    cpuLevel="";
+    document.getElementById("room-create").disabled=false;
+    document.getElementById("room-join").disabled=false;
+    document.getElementById("room-code-input").disabled=false;
+    document.getElementById("room-code-display").textContent="";
+    document.getElementById("room-code-input").value="";
+    initBoard();
+    drawBoard();
+    showModeScreen();
 }
 
 function updateLevelInfo(){
     const el=document.getElementById("level-info");
+    if(gameMode==="multi"){
+        el.textContent="ふたりであそぶ";
+        return;
+    }
     if(cpuLevel===""){
         el.textContent="";
         return;
@@ -806,6 +956,24 @@ levelWin.addEventListener("click",function(){
     showColorScreen();
 });
 
+const modeSingle=document.getElementById("mode-single");
+modeSingle.addEventListener("click",function(){
+    gameMode="single";
+    showLevelScreen();
+});
+
+const modeMulti=document.getElementById("mode-multi");
+modeMulti.addEventListener("click",function(){
+    gameMode="multi";
+    showRoomScreen();
+});
+
+const roomCreate=document.getElementById("room-create");
+roomCreate.addEventListener("click",createRoom);
+
+const roomJoin=document.getElementById("room-join");
+roomJoin.addEventListener("click",joinRoom);
+
 document.addEventListener("keydown",function(e){
     typedKeys=typedKeys+e.key.toLowerCase();
     if(typedKeys.length>10){
@@ -818,3 +986,4 @@ document.addEventListener("keydown",function(e){
 });
 initBoard();
 drawBoard();
+showModeScreen();

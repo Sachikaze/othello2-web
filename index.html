@@ -27,6 +27,18 @@
                 </div>
             </div>
         </div>
+        <div id="mode-screen">
+            <div class="popup-window">
+                <div class="popup-bar">
+                    <span>ゲームをはじめる</span>
+                </div>
+                <div class="popup-body">
+                    <p>あそびかたをえらんでね</p>
+                    <button id="mode-single" class="pair-button">ひとりであそぶ</button>
+                    <button id="mode-multi" class="pair-button">ふたりであそぶ</button>
+                </div>
+            </div>
+        </div>
         <div id="level-screen">
             <div class="popup-window">
                 <div class="popup-bar">
@@ -54,6 +66,19 @@
                 </div>
             </div>
         </div>
+        <div id="room-screen" class="hidden">
+            <div class="popup-window">
+                <div class="popup-bar">
+                    <span>あいことば</span>
+                </div>
+                <div class="popup-body">
+                    <button id="room-create" class="pair-button">へやをつくる</button>
+                    <p id="room-code-display"></p>
+                    <input id="room-code-input" maxlength="6" placeholder="ここににゅうりょく">
+                    <button id="room-join" class="pair-button">へやにはいる</button>
+                </div>
+            </div>
+        </div>
         <div id="confirm" class="hidden">
             <div class="popup-window">
                 <div class="popup-bar">
@@ -66,6 +91,7 @@
                 </div>
             </div>
         </div>
+        <script type="module" src="firebase-init.js"></script>
         <script src="script.js"></script>
     </body>
 </html>
